@@ -20,6 +20,8 @@ namespace CryptoLedger
         {
             Program p = new Program();
             ConsoleHelper ch = new ConsoleHelper();
+            DBHelper db = new DBHelper();
+            db.initializeDatabase();
 
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.DarkYellow;

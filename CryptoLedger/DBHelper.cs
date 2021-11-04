@@ -1,12 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.IO;
 
 namespace CryptoLedger
 {
     class DBHelper
     {
-        private string _database = @"Data Source=C:\Users\Logan\Documents\Databases\assets.db";
+        private string _database = @"\Database\assets.db";
+
+        public void initializeDatabase()
+        {
+            ConsoleHelper ch = new ConsoleHelper();
+
+            var _dir = @"\Database";
+
+            if (!Directory.Exists(_dir))
+                Directory.CreateDirectory(_dir);
+
+            if (!File.Exists(_database))
+            {
+                using var _connection = new SQLiteConnection(_database);
+                try
+                {
+                    _connection.Open();
+
+                    using var cmd = new SQLiteCommand(_connection);
+                    cmd.CommandText = "create table assets(ticker text, amount decimal, invested decimal, wallet text, staked text)";
+                    cmd.Prepare();
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    ch.LogErr(ex.Message, 0);
+                }
+                finally
+                {
+                    _connection.Close();
+                }
+            }
+
+        }
 
         public void addAsset(string dTicker, decimal dAmount, decimal dInvested, string dWallet, string disStaked)
         {
