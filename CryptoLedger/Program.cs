@@ -1,9 +1,18 @@
 ﻿using System;
-using Newtonsoft.Json;
 using ConsoleTables;
+using System.Globalization;
+using System.Collections.Generic;
 
 /* CREDITS 
  * CSharp Examples - https://www.csharp-console-examples.com/general/reading-excel-file-in-c-console-application/
+ * 
+ */
+
+// TODO:
+/*
+ * 1). Fix Read/Write to SQLite Database
+ * 2). Modify SQlite DB connections to allow Async connections
+ * 3). LOW PRIOR: Add Coinmarketcap API interaction.
  * 
  */
 
@@ -39,8 +48,7 @@ namespace CryptoLedger
             switch (Console.ReadLine())
             {
                 case "1":
-                    p.testConsole();
-                    return false;
+                    return p.listAssets();
                 case "2":
                     Console.WriteLine("Add");
                     return p.addAsset();
@@ -62,10 +70,10 @@ namespace CryptoLedger
             string ticker = Console.ReadLine();
             Console.Clear();
             Console.Write("Amount?: ");
-            float amount = Convert.ToInt32(Console.ReadLine());
+            decimal amount = Convert.ToDecimal(Console.ReadLine());
             Console.Clear();
             Console.Write("Invested?: ");
-            int invested = Convert.ToInt32(Console.ReadLine());
+            decimal invested = Convert.ToDecimal(Console.ReadLine());
             Console.Clear();
             Console.Write("Wallet?: ");
             string wallet = Console.ReadLine();
@@ -91,13 +99,46 @@ namespace CryptoLedger
             return true;
         }
 
-        private void testConsole()
+        private bool listAssets()
         {
+            DataHelper data = new DataHelper();
+            Console.Clear();
+
+            //Construct table
+            var assetTable = new ConsoleTable("Asset", "Amount", "Invested", "Wallet", "Staked");
+
+            //Retrive Json data from data file to populate the table.
+
+            data.getAssets();
+            
+            /*foreach (Asset item in asset)
+            {
+                assetTable.AddRow(item.Ticker, item.Amount, item.Invested, item.Wallet, item.isStaked);
+            }
+            assetTable.Write();
+            */
+            Console.WriteLine();
+            Console.Write("Type exit to return to the Main Menu: ");
+            if (Console.ReadLine() == "exit")
+                return true;
+            return true;
+        }
+
+        private bool testConsole()
+        {
+            Console.Clear();
             var table = new ConsoleTable("Asset", "Amount", "Invested", "Wallet", "Staked");
             table.AddRow("BTC", "1", "10000", "CoinBase", "No");
             table.AddRow("BTC", "1", "10000", "CoinBase", "No");
             table.AddRow("BTC", "1", "10000", "CoinBase", "No");
             table.Write();
+
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.Write("Type exit to return to the Main Menu: ");
+            if (Console.ReadLine() == "exit")
+                return true;
+            return true;
         }
 
 

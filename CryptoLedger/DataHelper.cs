@@ -1,41 +1,63 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Newtonsoft.Json;
 using System.IO;
+using System.Threading.Tasks;
+using System.Data.SQLite;
 
 namespace CryptoLedger
 {
     class DataHelper
     {
-        readonly string DataFilePath = Directory.GetCurrentDirectory() + @"/DataFiles/data.json";
+        private string _database = @"Data Source=C:\Users\Logan\Documents\Databases\assets.db";
 
         // Serialize Object
         // Use Asset asset = JsonConvert.DeserializeObject<Asset>(data) to deserialize
-        public void addAsset(string dTicker, float dAmount, int dInvested, string dWallet, bool disStaked)
+        public void addAsset(string dTicker, decimal dAmount, decimal dInvested, string dWallet, bool disStaked)
         {
-            Asset asset = new Asset
-            {
-                Ticker = dTicker,
-                Amount = dAmount,
-                Invested = dInvested,
-                Wallet = dWallet,
-                isStaked = disStaked
-            };
+            using var _connection = new SQLiteConnection(_database);
+            _connection.Open();
 
-            if (!fileCheck(DataFilePath))
-            {
-                Console.WriteLine("Error with file creation");
-                return;
-            }
+            using var cmd = new SQLiteCommand(_connection);
+            cmd.CommandText = "INSERT INTO assets(ticker, amount, invested, wallet, staked) VALUES(@dTicker, @dAmount, @dInvested, @dWallet, @disStaked)";
 
-            WriteToJsonFile<Asset>(DataFilePath, asset);
-            //File.AppendAllText(DataFilePath, JsonConvert.SerializeObject(asset));
+            cmd.Parameters.AddWithValue("@dTicker", dTicker);
+            cmd.Parameters.AddWithValue("@dAmount", dAmount);
+            cmd.Parameters.AddWithValue("@dInvested", dInvested);
+            cmd.Parameters.AddWithValue("@dWallet", dWallet);
+            cmd.Parameters.AddWithValue("@disStaked", disStaked);
+
+            cmd.Prepare();
+
+            cmd.ExecuteNonQuery();
+            Console.WriteLine("Added asset");
         }
 
-        public void getAsset(string dTicker)
+        public List<Asset> getAssets()
         {
-            Asset asset = ReadFromJsonFile<Asset>(DataFilePath);
+            List<Asset> _constructedList = new List<Asset>();
+            using var _connection = new SQLiteConnection(_database);
+            _connection.Open();
+
+            string query = "SELECT * FROM assets";
+
+            using var cmd = new SQLiteCommand(query, _connection);
+            using SQLiteDataReader _reader = cmd.ExecuteReader();
+
+            while (_reader.Read())
+            {
+                _constructedList.Add(new Asset()
+                {
+                    Ticker = _reader.GetString(1),
+                    Amount = _reader.GetInt32(2),
+                    Invested = _reader.GetDecimal(3),
+                    Wallet = _reader.GetString(4),
+                    isStaked = _reader.GetBoolean(5)
+                });
+                Console.WriteLine("Added Asset" + _reader.GetString(1));
+            }
+
+            return _constructedList;
         }
 
         private bool fileCheck(string path)
@@ -56,55 +78,7 @@ namespace CryptoLedger
             }
         }
 
-        ///Credits to https://stackoverflow.com/a/22417240/17311204
-        /// <summary>
-        /// Writes the given object instance to a Json file.
-        /// <para>Object type must have a parameterless constructor.</para>
-        /// <para>Only Public properties and variables will be written to the file. These can be any type though, even other classes.</para>
-        /// <para>If there are public properties/variables that you do not want written to the file, decorate them with the [JsonIgnore] attribute.</para>
-        /// </summary>
-        /// <typeparam name="T">The type of object being written to the file.</typeparam>
-        /// <param name="filePath">The file path to write the object instance to.</param>
-        /// <param name="objectToWrite">The object instance to write to the file.</param>
-        /// <param name="append">If false the file will be overwritten if it already exists. If true the contents will be appended to the file.</param>
-        public static void WriteToJsonFile<T>(string filePath, T objectToWrite, bool append = false) where T : new()
-        {
-            TextWriter writer = null;
-            try
-            {
-                var contentsToWriteToFile = JsonConvert.SerializeObject(objectToWrite);
-                writer = new StreamWriter(filePath, append);
-                writer.Write(contentsToWriteToFile);
-            }
-            finally
-            {
-                if (writer != null)
-                    writer.Close();
-            }
-        }
-
-        /// <summary>
-        /// Reads an object instance from an Json file.
-        /// <para>Object type must have a parameterless constructor.</para>
-        /// </summary>
-        /// <typeparam name="T">The type of object to read from the file.</typeparam>
-        /// <param name="filePath">The file path to read the object instance from.</param>
-        /// <returns>Returns a new instance of the object read from the Json file.</returns>
-        public static T ReadFromJsonFile<T>(string filePath) where T : new()
-        {
-            TextReader reader = null;
-            try
-            {
-                reader = new StreamReader(filePath);
-                var fileContents = reader.ReadToEnd();
-                return JsonConvert.DeserializeObject<T>(fileContents);
-            }
-            finally
-            {
-                if (reader != null)
-                    reader.Close();
-            }
-        }
+        
     }
 }
 
