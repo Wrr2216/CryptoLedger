@@ -26,10 +26,11 @@ namespace CryptoLedger
             ch.Log("Choose an option:", "wl");
             Console.ForegroundColor = ConsoleColor.Green;
             ch.Log("1) Load Asset List", "wl");
-            ch.Log("2) Add Asset", "wl");
-            ch.Log("3) Remove Asset", "wl");
+            ch.Log("2) Lookup Asset", "wl");
+            ch.Log("3) Add Asset", "wl");
+            ch.Log("4) Remove Asset", "wl");
             Console.ForegroundColor = ConsoleColor.Red;
-            ch.Log("4) Exit", "wl");
+            ch.Log("5) Exit", "wl");
             Console.ForegroundColor = ConsoleColor.White;
             ch.Log("\r\nSelect an option>\\: ", "w");
 
@@ -38,10 +39,12 @@ namespace CryptoLedger
                 case "1":
                     return p.listAssets();
                 case "2":
-                    return p.addAsset();
+                    return p.listAsset();
                 case "3":
-                    return p.remAsset();
+                    return p.addAsset();
                 case "4":
+                    return p.remAsset();
+                case "5":
                     return false;
                 default:
                     return true;
@@ -75,20 +78,74 @@ namespace CryptoLedger
 				staked = "No";
 			}
 
-			DataHelper data = new DataHelper();
-			data.addAsset(ticker, amount, invested, wallet, staked);
+            Asset _asset = new Asset();
+            _asset.addAsset(
+                ticker,
+                amount,
+                invested,
+                wallet,
+                staked
+            );
 
-			return true;
+            return true;
 		}
+
+        private bool remAsset()
+        {
+            ConsoleHelper ch = new ConsoleHelper();
+            Console.Clear();
+
+            string _ticker;
+            ch.Log("Enter the Ticker for the asset to be removed: ", "w");
+            _ticker = Console.ReadLine();
+            ch.Log(String.Format("Re-enter the Ticker ({0}): ", _ticker), "wl");
+            if (Console.ReadLine().ToLower() == _ticker.ToLower())
+            {
+                Asset _asset = new Asset();
+                _asset.removeAsset(_ticker);
+                return true;
+            }
+            else
+            {
+                ch.LogClear("Try again. Values did not match", "wl");
+                return true;
+            }
+        }
+
+        private bool listAsset()
+        {
+            ConsoleHelper ch = new ConsoleHelper();
+            Console.Clear();
+
+            ch.Log("Lookup Asset: ", "wl");
+
+            Asset _asset = new Asset().getAsset(Console.ReadLine());
+            var assetTable = new ConsoleTable("Asset", "Amount", "Invested", "Wallet", "Staked");
+            assetTable.AddRow(_asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked);
+            assetTable.Write();
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            ch.Log("1) Exit", "wl");
+            Console.ForegroundColor = ConsoleColor.White;
+            ch.Log("\r\nSelect an option>\\: ", "w");
+
+            switch (Console.ReadLine())
+            {
+                case "1":
+
+                    return true;
+                default:
+                    return true;
+            }
+        }
 
         private bool listAssets()
         {
             ConsoleHelper ch = new ConsoleHelper();
-            DataHelper data = new DataHelper();
             Console.Clear();
 
             var assetTable = new ConsoleTable("Asset", "Amount", "Invested", "Wallet", "Staked");
-            List<Asset> _retData = data.getAssets();
+            List<Asset> _retData = new Asset().getAllAssets();
             
             foreach (Asset _asset in _retData)
             {
@@ -119,25 +176,6 @@ namespace CryptoLedger
             }
        }
 
-        private bool remAsset()
-        {
-            ConsoleHelper ch = new ConsoleHelper();
-            DataHelper data = new DataHelper();
-            Console.Clear();
 
-            string _ticker;
-            ch.Log("Enter the Ticker for the asset to be removed: ", "w");
-            _ticker = Console.ReadLine();
-            ch.Log(String.Format("Re-enter the Ticker ({0}): ", _ticker), "wl");
-            if (Console.ReadLine().ToLower() == _ticker.ToLower())
-            {
-                data.remAsset(_ticker);
-                return true;
-            }
-            else {
-                ch.LogClear("Try again. Values did not match", "wl");
-                return true;
-            }
-        }
     }
 }

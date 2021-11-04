@@ -27,7 +27,7 @@ namespace CryptoLedger
 
         public void Log(string _data, string _type)
         {
-            string _parsed = String.Format(">: {0}", _data);
+            string _parsed = String.Format("{0}", _data);
 
             switch (_type.ToLower())
             {
