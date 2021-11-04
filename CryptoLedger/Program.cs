@@ -1,25 +1,12 @@
 ﻿using System;
 using ConsoleTables;
-using System.Globalization;
 using System.Collections.Generic;
-
-/* CREDITS 
- * CSharp Examples - https://www.csharp-console-examples.com/general/reading-excel-file-in-c-console-application/
- * 
- */
-
-// TODO:
-/*
- * 1). Fix Read/Write to SQLite Database
- * 2). Modify SQlite DB connections to allow Async connections
- * 3). LOW PRIOR: Add Coinmarketcap API interaction.
- * 
- */
 
 namespace CryptoLedger
 {
     class Program
     {
+
         static void Main(string[] args)
         {
             bool doMenu = true;
@@ -32,116 +19,125 @@ namespace CryptoLedger
         private static bool Menu()
         {
             Program p = new Program();
+            ConsoleHelper ch = new ConsoleHelper();
 
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.DarkYellow;
-            Console.WriteLine("Choose an option:");
+            ch.Log("Choose an option:", "wl");
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("1) Load Asset List");
-            Console.WriteLine("2) Add Asset");
-            Console.WriteLine("3) Remove Asset");
+            ch.Log("1) Load Asset List", "wl");
+            ch.Log("2) Add Asset", "wl");
+            ch.Log("3) Remove Asset", "wl");
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("4) Exit");
+            ch.Log("4) Exit", "wl");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("\r\nSelect an option>\\: ");
+            ch.Log("\r\nSelect an option>\\: ", "w");
 
             switch (Console.ReadLine())
             {
                 case "1":
                     return p.listAssets();
                 case "2":
-                    Console.WriteLine("Add");
                     return p.addAsset();
                 case "3":
-                    Console.WriteLine("Remove");
-                    return true;
+                    return p.remAsset();
                 case "4":
-                    Console.WriteLine("Exit");
                     return false;
                 default:
                     return true;
             }
         }
 
-        private bool addAsset()
-        {
-            Console.Clear();
-            Console.Write("Ticker? : ");
-            string ticker = Console.ReadLine();
-            Console.Clear();
-            Console.Write("Amount?: ");
+		private bool addAsset()
+		{
+            ConsoleHelper ch = new ConsoleHelper();
+
+            ch.LogClear("Ticker?: ", "w");
+			string ticker = Console.ReadLine();
+            ch.LogClear("Amount?: ", "w");
             decimal amount = Convert.ToDecimal(Console.ReadLine());
-            Console.Clear();
-            Console.Write("Invested?: ");
+            ch.LogClear("Invested?: ", "w");
             decimal invested = Convert.ToDecimal(Console.ReadLine());
-            Console.Clear();
-            Console.Write("Wallet?: ");
+            ch.LogClear("Wallet?: ", "w");
             string wallet = Console.ReadLine();
-            Console.Clear();
-            Console.Write("Is it staked? (y/n): ");
-            bool staked;
-            if (Console.ReadLine() == "n")
-            {
-                staked = false;
-            }
-            else if (Console.ReadLine() == "y")
-            {
-                staked = true;
-            }
-            else
-            {
-                staked = false;
-            }
+            ch.LogClear("Is it staked? (y/n): ", "w");
+            string staked;
+			if (Console.ReadLine().ToLower() == "n")
+			{
+				staked = "No";
+			}
+			else if (Console.ReadLine().ToLower() == "y")
+			{
+				staked = "Yes";
+			}
+			else
+			{
+				staked = "No";
+			}
 
-            DataHelper data = new DataHelper();
-            data.addAsset(ticker, amount, invested, wallet, staked);
+			DataHelper data = new DataHelper();
+			data.addAsset(ticker, amount, invested, wallet, staked);
 
-            return true;
-        }
+			return true;
+		}
 
         private bool listAssets()
         {
+            ConsoleHelper ch = new ConsoleHelper();
             DataHelper data = new DataHelper();
             Console.Clear();
 
-            //Construct table
             var assetTable = new ConsoleTable("Asset", "Amount", "Invested", "Wallet", "Staked");
-
-            //Retrive Json data from data file to populate the table.
-
-            data.getAssets();
+            List<Asset> _retData = data.getAssets();
             
-            /*foreach (Asset item in asset)
+            foreach (Asset _asset in _retData)
             {
-                assetTable.AddRow(item.Ticker, item.Amount, item.Invested, item.Wallet, item.isStaked);
+                assetTable.AddRow(_asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked);
             }
             assetTable.Write();
-            */
-            Console.WriteLine();
-            Console.Write("Type exit to return to the Main Menu: ");
-            if (Console.ReadLine() == "exit")
-                return true;
-            return true;
-        }
 
-        private bool testConsole()
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            ch.Log("Choose an option:", "wl");
+            Console.ForegroundColor = ConsoleColor.Green;
+            ch.Log("1) Add Asset", "wl");
+            ch.Log("2) Remove Asset", "wl");
+            Console.ForegroundColor = ConsoleColor.Red;
+            ch.Log("3) Exit", "wl");
+            Console.ForegroundColor = ConsoleColor.White;
+            ch.Log("\r\nSelect an option>\\: ", "w");
+
+            switch (Console.ReadLine())
+            {
+                case "1":
+                    return addAsset();
+                case "2":
+                    return remAsset();
+                case "3":
+                    return true;
+                default:
+                    return true;
+            }
+       }
+
+        private bool remAsset()
         {
+            ConsoleHelper ch = new ConsoleHelper();
+            DataHelper data = new DataHelper();
             Console.Clear();
-            var table = new ConsoleTable("Asset", "Amount", "Invested", "Wallet", "Staked");
-            table.AddRow("BTC", "1", "10000", "CoinBase", "No");
-            table.AddRow("BTC", "1", "10000", "CoinBase", "No");
-            table.AddRow("BTC", "1", "10000", "CoinBase", "No");
-            table.Write();
 
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.Write("Type exit to return to the Main Menu: ");
-            if (Console.ReadLine() == "exit")
+            string _ticker;
+            ch.Log("Enter the Ticker for the asset to be removed: ", "w");
+            _ticker = Console.ReadLine();
+            ch.Log(String.Format("Re-enter the Ticker ({0}): ", _ticker), "wl");
+            if (Console.ReadLine().ToLower() == _ticker.ToLower())
+            {
+                data.remAsset(_ticker);
                 return true;
-            return true;
+            }
+            else {
+                ch.LogClear("Try again. Values did not match", "wl");
+                return true;
+            }
         }
-
-
-
     }
 }

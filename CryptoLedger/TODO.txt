@@ -1,0 +1,3 @@
+﻿1). Add table creation to DB file if does not exist
+2). Add CoinMarketCap API utilization
+3). 
