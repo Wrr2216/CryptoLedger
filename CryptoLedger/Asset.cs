@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-
-namespace CryptoLedger
+﻿namespace CryptoLedger
 {
     public class Asset
     {
@@ -12,15 +6,6 @@ namespace CryptoLedger
         public decimal Amount { get; set; }
         public decimal Invested { get; set; }
         public string Wallet { get; set; }
-        public bool isStaked { get; set; }
+        public string isStaked { get; set; }
     }
 }
-
-
-/*
- string Ticker
-int Amount
-int Invested
-string Wallet
-bool isStaked
- */
