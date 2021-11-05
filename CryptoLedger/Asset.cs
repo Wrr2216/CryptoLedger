@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using NoobsMuc.Coinmarketcap.Client;
+using System;
+using System.Collections.Generic;
 
 namespace CryptoLedger
 {
@@ -10,10 +12,12 @@ namespace CryptoLedger
         public decimal Invested { get; set; }
         public string Wallet { get; set; }
         public string isStaked { get; set; }
+        public decimal marketVal { get; set; }
 
         public void addAsset(string dTicker, decimal dAmount, decimal dInvested, string dWallet, string dIsStaked)
         {
-            _assetDB.addAsset(dTicker, dAmount, dInvested, dWallet, dIsStaked);
+            decimal _marketVal = Convert.ToDecimal(this.getMarketValue(dTicker).Price);
+            _assetDB.addAsset(dTicker, dAmount, dInvested, dWallet, dIsStaked, _marketVal);
         }
         public Asset getAsset(string dTicker)
         {
@@ -28,6 +32,20 @@ namespace CryptoLedger
         public void removeAsset(string dTicker)
         {
             _assetDB.remAsset(dTicker);
+        }
+
+        public Currency getMarketValue()
+        {
+            ICoinmarketcapClient client = new CoinmarketcapClient("76b79698-000e-4ec2-849a-0a60e8ba3889");
+            Currency currency = client.GetCurrencyBySymbol(this.Ticker);
+            return currency;
+        }
+
+        public Currency getMarketValue(string dTicker)
+        {
+            ICoinmarketcapClient client = new CoinmarketcapClient("76b79698-000e-4ec2-849a-0a60e8ba3889");
+            Currency currency = client.GetCurrencyBySymbol(dTicker);
+            return currency;
         }
     }
 }
