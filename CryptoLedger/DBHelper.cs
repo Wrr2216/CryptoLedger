@@ -7,18 +7,18 @@ namespace CryptoLedger
 {
     class DBHelper
     {
-        private string _database = @"\Database\assets.db";
+        private string _database = @"Data Source=.\Databases\assets.db; Version=3;";
 
         public void initializeDatabase()
         {
             ConsoleHelper ch = new ConsoleHelper();
 
-            var _dir = @"\Database";
+            var _dir = @".\Database";
 
             if (!Directory.Exists(_dir))
                 Directory.CreateDirectory(_dir);
 
-            if (!File.Exists(_database))
+            if (!File.Exists(@".\Databases\assets.db"))
             {
                 using var _connection = new SQLiteConnection(_database);
                 try
@@ -26,7 +26,7 @@ namespace CryptoLedger
                     _connection.Open();
 
                     using var cmd = new SQLiteCommand(_connection);
-                    cmd.CommandText = "create table assets(ticker text, amount decimal, invested decimal, wallet text, staked text)";
+                    cmd.CommandText = "create table assets(ticker text, amount decimal, invested decimal, wallet text, staked text, cv decimal)";
                     cmd.Prepare();
                     cmd.ExecuteNonQuery();
                 }
@@ -42,7 +42,7 @@ namespace CryptoLedger
 
         }
 
-        public void addAsset(string dTicker, decimal dAmount, decimal dInvested, string dWallet, string disStaked)
+        public void addAsset(string dTicker, decimal dAmount, decimal dInvested, string dWallet, string disStaked, decimal dCv)
         {
             ConsoleHelper ch = new ConsoleHelper();
 
@@ -52,13 +52,14 @@ namespace CryptoLedger
                 _connection.Open();
 
                 using var cmd = new SQLiteCommand(_connection);
-                cmd.CommandText = "INSERT INTO assets(ticker, amount, invested, wallet, staked) VALUES(@dTicker, @dAmount, @dInvested, @dWallet, @disStaked)";
+                cmd.CommandText = "INSERT INTO assets(ticker, amount, invested, wallet, staked, cv) VALUES(@dTicker, @dAmount, @dInvested, @dWallet, @disStaked, @dCv)";
 
                 cmd.Parameters.AddWithValue("@dTicker", dTicker);
                 cmd.Parameters.AddWithValue("@dAmount", dAmount);
                 cmd.Parameters.AddWithValue("@dInvested", dInvested);
                 cmd.Parameters.AddWithValue("@dWallet", dWallet);
                 cmd.Parameters.AddWithValue("@disStaked", disStaked);
+                cmd.Parameters.AddWithValue("@dCv", dCv);
 
                 cmd.Prepare();
 
