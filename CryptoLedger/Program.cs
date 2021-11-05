@@ -1,6 +1,8 @@
 ﻿using System;
 using ConsoleTables;
 using System.Collections.Generic;
+using System.IO;
+using NoobsMuc.Coinmarketcap.Client;
 
 namespace CryptoLedger
 {
@@ -31,8 +33,9 @@ namespace CryptoLedger
             ch.Log("2) Lookup Asset", "wl");
             ch.Log("3) Add Asset", "wl");
             ch.Log("4) Remove Asset", "wl");
+            ch.Log("5) Demographics", "wl");
             Console.ForegroundColor = ConsoleColor.Red;
-            ch.Log("5) Exit", "wl");
+            ch.Log("6) Exit", "wl");
             Console.ForegroundColor = ConsoleColor.White;
             ch.Log("\r\nSelect an option>\\: ", "w");
 
@@ -47,6 +50,12 @@ namespace CryptoLedger
                 case "4":
                     return p.remAsset();
                 case "5":
+                    return p.getDemos();
+                    return true;
+                case "6":
+                    return false;
+                case "dev":
+                    ch.Log(Directory.GetCurrentDirectory() + @"\Database\assets.db", "wl");
                     return false;
                 default:
                     return true;
@@ -152,6 +161,7 @@ namespace CryptoLedger
             foreach (Asset _asset in _retData)
             {
                 assetTable.AddRow(_asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked);
+                //assetTable.AddRow(_asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked, _asset.getValue().Price);
             }
             assetTable.Write();
 
@@ -177,6 +187,59 @@ namespace CryptoLedger
                     return true;
             }
        }
+
+        private bool getDemos()
+        {
+            ConsoleHelper ch = new ConsoleHelper();
+            Console.Clear();
+
+            decimal _totalValue = 0;
+
+            var assetTable = new ConsoleTable("Asset", "Amount", "Market Value");
+            List<Asset> _retData = new Asset().getAllAssets();
+
+            foreach (Asset _asset in _retData)
+            {
+                try
+                {
+                    decimal _mValue = (Convert.ToDecimal(_asset.getMarketValue().Price) * _asset.Amount);
+                    assetTable.AddRow(_asset.Ticker, _asset.Amount, _mValue);
+                    _totalValue = (_totalValue + _mValue);
+                }
+                catch (Exception ex)
+                { 
+                
+                }
+                
+                //assetTable.AddRow(_asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked, _asset.getValue().Price);
+            }
+            assetTable.Write();
+
+            ch.Log("Total Portfolio Values: " + Convert.ToString(_totalValue), "wl");
+
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            ch.Log("Choose an option:", "wl");
+            Console.ForegroundColor = ConsoleColor.Green;
+            ch.Log("1) Add Asset", "wl");
+            ch.Log("2) Remove Asset", "wl");
+            Console.ForegroundColor = ConsoleColor.Red;
+            ch.Log("3) Exit", "wl");
+            Console.ForegroundColor = ConsoleColor.White;
+            ch.Log("\r\nSelect an option>\\: ", "w");
+
+            switch (Console.ReadLine())
+            {
+                case "1":
+                    return addAsset();
+                case "2":
+                    return remAsset();
+                case "3":
+                    return true;
+                default:
+                    return true;
+            }
+        }
+
 
 
     }
