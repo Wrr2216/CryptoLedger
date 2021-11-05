@@ -199,7 +199,8 @@ namespace CryptoLedger
                         Amount = Convert.ToDecimal(_reader.GetValue(1)),
                         Invested = Convert.ToDecimal(_reader.GetValue(2)),
                         Wallet = Convert.ToString(_reader.GetValue(3)),
-                        isStaked = Convert.ToString(_reader.GetValue(4))
+                        isStaked = Convert.ToString(_reader.GetValue(4)),
+                        marketVal = Convert.ToDecimal(_reader.GetValue(5))
                     });
                 }
             }

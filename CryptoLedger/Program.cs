@@ -1,8 +1,8 @@
 ﻿using System;
-using ConsoleTables;
 using System.Collections.Generic;
 using System.IO;
-using NoobsMuc.Coinmarketcap.Client;
+using Spectre.Console;
+using System.Threading;
 
 namespace CryptoLedger
 {
@@ -26,48 +26,44 @@ namespace CryptoLedger
             db.initializeDatabase();
 
             Console.Clear();
-            Console.ForegroundColor = ConsoleColor.DarkYellow;
-            ch.Log("Choose an option:", "wl");
-            Console.ForegroundColor = ConsoleColor.Green;
-            ch.Log("1) Load Asset List", "wl");
-            ch.Log("2) Lookup Asset", "wl");
-            ch.Log("3) Add Asset", "wl");
-            ch.Log("4) Remove Asset", "wl");
-            ch.Log("5) Demographics", "wl");
-            Console.ForegroundColor = ConsoleColor.Red;
-            ch.Log("6) Exit", "wl");
-            Console.ForegroundColor = ConsoleColor.White;
-            ch.Log("\r\nSelect an option>\\: ", "w");
 
-            switch (Console.ReadLine())
+            var _menu = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[green]Select Menu[/]")
+                    .PageSize(7)
+                    .MoreChoicesText("[grey](Move up and down to select option)[/]")
+                    .AddChoices(new[] {
+                            "Portfolio",
+                            "Lookup Ticker",
+                            "Add Ticker",
+                            "Remove Ticker",
+                            "[red]Exit Application[/]"
+                        })
+                );
+
+            switch ($"{_menu}")
             {
-                case "1":
-                    return p.listAssets();
-                case "2":
+                case "Portfolio":
+                    return p.ListAssets();
+                case "Lookup Ticker":
                     return p.listAsset();
-                case "3":
+                case "Add Ticker":
                     return p.addAsset();
-                case "4":
+                case "Remove Ticker":
                     return p.remAsset();
-                case "5":
-                    return p.getDemos();
-                    return true;
-                case "6":
-                    return false;
-                case "dev":
-                    ch.Log(Directory.GetCurrentDirectory() + @"\Database\assets.db", "wl");
+                case "[red]Exit Application[/]":
                     return false;
                 default:
                     return true;
             }
         }
 
-		private bool addAsset()
-		{
+        private bool addAsset()
+        {
             ConsoleHelper ch = new ConsoleHelper();
 
             ch.LogClear("Ticker?: ", "w");
-			string ticker = Console.ReadLine();
+            string ticker = Console.ReadLine();
             ch.LogClear("Amount?: ", "w");
             decimal amount = Convert.ToDecimal(Console.ReadLine());
             ch.LogClear("Invested?: ", "w");
@@ -76,18 +72,18 @@ namespace CryptoLedger
             string wallet = Console.ReadLine();
             ch.LogClear("Is it staked? (y/n): ", "w");
             string staked;
-			if (Console.ReadLine().ToLower() == "n")
-			{
-				staked = "No";
-			}
-			else if (Console.ReadLine().ToLower() == "y")
-			{
-				staked = "Yes";
-			}
-			else
-			{
-				staked = "No";
-			}
+            if (Console.ReadLine().ToLower() == "n")
+            {
+                staked = "No";
+            }
+            else if (Console.ReadLine().ToLower() == "y")
+            {
+                staked = "Yes";
+            }
+            else
+            {
+                staked = "No";
+            }
 
             Asset _asset = new Asset();
             _asset.addAsset(
@@ -99,8 +95,7 @@ namespace CryptoLedger
             );
 
             return true;
-		}
-
+        }
         private bool remAsset()
         {
             ConsoleHelper ch = new ConsoleHelper();
@@ -122,7 +117,6 @@ namespace CryptoLedger
                 return true;
             }
         }
-
         private bool listAsset()
         {
             ConsoleHelper ch = new ConsoleHelper();
@@ -131,117 +125,79 @@ namespace CryptoLedger
             ch.Log("Lookup Asset: ", "wl");
 
             Asset _asset = new Asset().getAsset(Console.ReadLine());
-            var assetTable = new ConsoleTable("Asset", "Amount", "Invested", "Wallet", "Staked");
-            assetTable.AddRow(_asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked);
-            assetTable.Write();
+            var _table = new Table();
+            _table.AddColumns("Asset", "Amount", "Invested", "Wallet", "Staked", "Value");
+            _table.AddRow(
+                            String.Format("[blue]{0}[/]", _asset.Ticker),
+                            String.Format("{0}", _asset.Amount),
+                            String.Format("[green]{0}[/]", _asset.Invested),
+                            String.Format("{0}", _asset.Wallet),
+                            String.Format("{0}", _asset.isStaked),
+                            String.Format("[green]{0}[/]", (_asset.marketVal * _asset.Amount))
+                        );
 
-            Console.ForegroundColor = ConsoleColor.Red;
-            ch.Log("1) Exit", "wl");
-            Console.ForegroundColor = ConsoleColor.White;
-            ch.Log("\r\nSelect an option>\\: ", "w");
-
-            switch (Console.ReadLine())
-            {
-                case "1":
-
-                    return true;
-                default:
-                    return true;
-            }
+            return tinyMenu();
         }
-
-        private bool listAssets()
+        private bool ListAssets()
         {
             ConsoleHelper ch = new ConsoleHelper();
             Console.Clear();
 
-            var assetTable = new ConsoleTable("Asset", "Amount", "Invested", "Wallet", "Staked");
-            assetTable.Configure(o => o.EnableCount = false);
-            List<Asset> _retData = new Asset().getAllAssets();
-            
-            foreach (Asset _asset in _retData)
-            {
-                assetTable.AddRow(_asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked);
-                //assetTable.AddRow(_asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked, _asset.getValue().Price);
-            }
-            assetTable.Write();
+            List<Asset> _retData;
 
-            Console.ForegroundColor = ConsoleColor.DarkYellow;
-            ch.Log("Choose an option:", "wl");
-            Console.ForegroundColor = ConsoleColor.Green;
-            ch.Log("1) Add Asset", "wl");
-            ch.Log("2) Remove Asset", "wl");
-            Console.ForegroundColor = ConsoleColor.Red;
-            ch.Log("3) Exit", "wl");
-            Console.ForegroundColor = ConsoleColor.White;
-            ch.Log("\r\nSelect an option>\\: ", "w");
+            var _table = new Table();
+            _table.AddColumns("Asset", "Amount", "Invested", "Wallet", "Staked", "Value");
 
-            switch (Console.ReadLine())
-            {
-                case "1":
-                    return addAsset();
-                case "2":
-                    return remAsset();
-                case "3":
-                    return true;
-                default:
-                    return true;
-            }
-       }
-
-        private bool getDemos()
-        {
-            ConsoleHelper ch = new ConsoleHelper();
-            Console.Clear();
-
-            decimal _totalValue = 0;
-
-            var assetTable = new ConsoleTable("Asset", "Amount", "Market Value");
-            List<Asset> _retData = new Asset().getAllAssets();
-
-            foreach (Asset _asset in _retData)
-            {
-                try
+            AnsiConsole.Status()
+                .Start("Loading Portfolio...", ctx =>
                 {
-                    decimal _mValue = (Convert.ToDecimal(_asset.getMarketValue().Price) * _asset.Amount);
-                    assetTable.AddRow(_asset.Ticker, _asset.Amount, _mValue);
-                    _totalValue = (_totalValue + _mValue);
-                }
-                catch (Exception ex)
-                { 
-                
-                }
-                
-                //assetTable.AddRow(_asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked, _asset.getValue().Price);
-            }
-            assetTable.Write();
+                    _retData = new Asset().getAllAssets();
+                    Thread.Sleep(1000);
 
-            ch.Log("Total Portfolio Values: " + Convert.ToString(_totalValue), "wl");
+                    foreach (Asset _asset in _retData)
+                    {
 
-            Console.ForegroundColor = ConsoleColor.DarkYellow;
-            ch.Log("Choose an option:", "wl");
-            Console.ForegroundColor = ConsoleColor.Green;
-            ch.Log("1) Add Asset", "wl");
-            ch.Log("2) Remove Asset", "wl");
-            Console.ForegroundColor = ConsoleColor.Red;
-            ch.Log("3) Exit", "wl");
-            Console.ForegroundColor = ConsoleColor.White;
-            ch.Log("\r\nSelect an option>\\: ", "w");
+                        //asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked
+                        _table.AddRow(
+                            String.Format("[blue]{0}[/]", _asset.Ticker),
+                            String.Format("{0}", _asset.Amount),
+                            String.Format("[green]{0}[/]", _asset.Invested),
+                            String.Format("{0}", _asset.Wallet),
+                            String.Format("{0}", _asset.isStaked),
+                            String.Format("[green]{0}[/]", (_asset.marketVal * _asset.Amount))
+                        );
+                    }
+                });
 
-            switch (Console.ReadLine())
+            AnsiConsole.Write(_table);
+
+            return tinyMenu();
+        }
+        private bool tinyMenu()
+        {
+            Program p = new Program();
+
+            var _menu = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[green]Select Menu[/]")
+                    .PageSize(7)
+                    .MoreChoicesText("[grey](Move up and down to select option)[/]")
+                    .AddChoices(new[] {
+                            "Main Menu",
+                            "Exit Application"
+                    })
+                );
+
+            switch ($"{_menu}")
             {
-                case "1":
-                    return addAsset();
-                case "2":
-                    return remAsset();
-                case "3":
+                case "Main Menu":
                     return true;
+                case "Exit Application":
+                    return false;
                 default:
                     return true;
             }
         }
-
-
 
     }
 }
