@@ -156,6 +156,7 @@ namespace CryptoLedger
             Console.Clear();
 
             var assetTable = new ConsoleTable("Asset", "Amount", "Invested", "Wallet", "Staked");
+            assetTable.Configure(o => o.EnableCount = false);
             List<Asset> _retData = new Asset().getAllAssets();
             
             foreach (Asset _asset in _retData)
