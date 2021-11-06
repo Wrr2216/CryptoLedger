@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
+using System.Threading;
 
 namespace CryptoLedger
 {
@@ -12,6 +13,8 @@ namespace CryptoLedger
         public void initializeDatabase()
         {
             ConsoleHelper ch = new ConsoleHelper();
+
+            updateDBMarket();
 
             var _dir = @".\Database";
 
@@ -45,7 +48,7 @@ namespace CryptoLedger
         public void updateDBMarket()
         {
             ConsoleHelper ch = new ConsoleHelper();
-            Asset _tempAsset = new Asset();
+            List<Asset> _listAsset = new List<Asset>();
 
             using var _connection = new SQLiteConnection(_database);
             try
@@ -58,28 +61,58 @@ namespace CryptoLedger
                 SQLiteDataReader _reader = cmd.ExecuteReader();
                 while (_reader.Read())
                 {
-                    _tempAsset = new Asset()
+                    if(_reader.GetValue(0) != DBNull.Value)
                     {
-                        Ticker = Convert.ToString(_reader.GetValue(0)),
-                        Amount = Convert.ToDecimal(_reader.GetValue(1)),
-                        Invested = Convert.ToDecimal(_reader.GetValue(2)),
-                        Wallet = Convert.ToString(_reader.GetValue(3)),
-                        isStaked = Convert.ToString(_reader.GetValue(4)),
-                        marketVal = Convert.ToDecimal(_reader.GetValue(5))
-                    };
+                        Asset _tempAsset = new Asset()
+                        {
+                            Ticker = Convert.ToString(_reader.GetValue(0)),
+                            Amount = Convert.ToDecimal(_reader.GetValue(1)),
+                            Invested = Convert.ToDecimal(_reader.GetValue(2)),
+                            Wallet = Convert.ToString(_reader.GetValue(3)),
+                            isStaked = Convert.ToString(_reader.GetValue(4)),
+                            marketVal = Convert.ToDecimal(_reader.GetValue(5))
+                        };
+                        _listAsset.Add(_tempAsset);
+                    }
                 }
-
-                
             }
             catch (Exception ex)
             {
-                ch.LogErr(ex.Message, 0);
+                ch.LogErr("Try 1 " + ex.Message, 0);
             }
             finally
             {
                 _connection.Close();
             }
-        }
+
+            using var _connection2 = new SQLiteConnection(_database);
+
+            try
+                {
+                    _connection2.Open();
+
+                    using var cmd = new SQLiteCommand(_connection2);
+                    foreach (Asset _entry in _listAsset)
+                    {
+                        Console.WriteLine(String.Format("Updating {0}...", _entry.Ticker));
+                        cmd.CommandText = "UPDATE assets SET cv = @dMarketValue WHERE (ticker = @dTicker)";
+                        cmd.Parameters.AddWithValue("@dMarketValue", Convert.ToDecimal(_entry.getMarketValue().Price));
+                        cmd.Parameters.AddWithValue("@dTicker", _entry.Ticker.ToString());
+
+                        cmd.Prepare();
+                        cmd.ExecuteNonQuery();
+                        Thread.Sleep(1000);
+                    }
+                    ch.LogErr("6", 0);
+                }
+                catch (Exception ex)
+                {
+                    ch.LogErr("Try 2 " + ex.Message, 0);
+                }
+                finally {
+                    _connection2.Close();
+                }
+            }
 
         public void addAsset(string dTicker, decimal dAmount, decimal dInvested, string dWallet, string disStaked, decimal dCv)
         {

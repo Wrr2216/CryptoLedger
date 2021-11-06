@@ -23,7 +23,15 @@ namespace CryptoLedger
             Program p = new Program();
             ConsoleHelper ch = new ConsoleHelper();
             DBHelper db = new DBHelper();
-            db.initializeDatabase();
+
+            AnsiConsole.Status()
+                .Start("Initializing Database...", ctx =>
+                {
+                    db.initializeDatabase();
+                    Thread.Sleep(1500);
+
+                    ctx.Status("Updating Database values...");
+                });
 
             Console.Clear();
 

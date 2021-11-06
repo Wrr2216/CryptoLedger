@@ -16,6 +16,8 @@ namespace CryptoLedger
 
         public void addAsset(string dTicker, decimal dAmount, decimal dInvested, string dWallet, string dIsStaked)
         {
+            if (dTicker.ToLower() == "test")
+                return;
             decimal _marketVal = Convert.ToDecimal(this.getMarketValue(dTicker).Price);
             _assetDB.addAsset(dTicker, dAmount, dInvested, dWallet, dIsStaked, _marketVal);
         }
@@ -36,14 +38,14 @@ namespace CryptoLedger
 
         public Currency getMarketValue()
         {
-            ICoinmarketcapClient client = new CoinmarketcapClient("[REDACTED]");
+            ICoinmarketcapClient client = new CoinmarketcapClient("76b79698-000e-4ec2-849a-0a60e8ba3889");
             Currency currency = client.GetCurrencyBySymbol(this.Ticker);
             return currency;
         }
 
         public Currency getMarketValue(string dTicker)
         {
-            ICoinmarketcapClient client = new CoinmarketcapClient("[REDACTED]");
+            ICoinmarketcapClient client = new CoinmarketcapClient("76b79698-000e-4ec2-849a-0a60e8ba3889");
             Currency currency = client.GetCurrencyBySymbol(dTicker);
             return currency;
         }
