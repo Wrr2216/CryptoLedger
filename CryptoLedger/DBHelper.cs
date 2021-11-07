@@ -14,8 +14,6 @@ namespace CryptoLedger
         {
             ConsoleHelper ch = new ConsoleHelper();
 
-            updateDBMarket();
-
             var _dir = @".\Database";
 
             if (!Directory.Exists(_dir))
@@ -43,8 +41,10 @@ namespace CryptoLedger
                 }
             }
 
-        }
+            Program.hasInit = true;
 
+        }
+        #region Update Values
         public void updateDBMarket()
         {
             ConsoleHelper ch = new ConsoleHelper();
@@ -112,8 +112,188 @@ namespace CryptoLedger
                 finally {
                     _connection2.Close();
                 }
-            }
+        }
 
+
+        #region Modify Values
+        public void updateTicker(string dTicker, string _input)
+        {
+            ConsoleHelper ch = new ConsoleHelper();
+            Asset _asset = new Asset().getAsset(dTicker);
+
+            using var _connection = new SQLiteConnection(_database);
+            try
+            {
+                _connection.Open();
+
+                using var cmd = new SQLiteCommand(_connection);
+                Console.WriteLine(String.Format("Updating {0}...", _asset.Ticker));
+                cmd.CommandText = "UPDATE assets SET ticker = @input WHERE (ticker = @dTicker)";
+                cmd.Parameters.AddWithValue("@dTicker", _asset.Ticker.ToString());
+                cmd.Parameters.AddWithValue("@input", _input);
+
+                cmd.Prepare();
+                cmd.ExecuteNonQuery();
+                Thread.Sleep(1000);
+            }
+            catch (Exception ex)
+            {
+                ch.LogErr(ex.Message, 0);
+            }
+            finally
+            {
+                _connection.Close();
+            }
+        }
+        public void updateAmount(string dTicker, double _input)
+        {
+            ConsoleHelper ch = new ConsoleHelper();
+            Asset _asset = new Asset().getAsset(dTicker);
+
+            using var _connection = new SQLiteConnection(_database);
+            try
+            {
+                _connection.Open();
+
+                using var cmd = new SQLiteCommand(_connection);
+                Console.WriteLine(String.Format("Updating {0}...", _asset.Ticker));
+                cmd.CommandText = "UPDATE assets SET amount = @dAmount WHERE (ticker = @dTicker)";
+                cmd.Parameters.AddWithValue("@dTicker", _asset.Ticker.ToString());
+                cmd.Parameters.AddWithValue("@dAmount", _input);
+
+                cmd.Prepare();
+                cmd.ExecuteNonQuery();
+                Thread.Sleep(1000);
+            }
+            catch (Exception ex)
+            {
+                ch.LogErr(ex.Message, 0);
+            }
+            finally
+            {
+                _connection.Close();
+            }
+        }
+        public void updateInvested(string dTicker, double _input)
+        {
+            ConsoleHelper ch = new ConsoleHelper();
+            Asset _asset = new Asset().getAsset(dTicker);
+
+            using var _connection = new SQLiteConnection(_database);
+            try
+            {
+                _connection.Open();
+
+                using var cmd = new SQLiteCommand(_connection);
+                Console.WriteLine(String.Format("Updating {0}...", _asset.Ticker));
+                cmd.CommandText = "UPDATE assets SET invested = @input WHERE (ticker = @dTicker)";
+                cmd.Parameters.AddWithValue("@dTicker", _asset.Ticker.ToString());
+                cmd.Parameters.AddWithValue("@input", _input);
+
+                cmd.Prepare();
+                cmd.ExecuteNonQuery();
+                Thread.Sleep(1000);
+            }
+            catch (Exception ex)
+            {
+                ch.LogErr(ex.Message, 0);
+            }
+            finally
+            {
+                _connection.Close();
+            }
+        }
+        public void updateWallet(string dTicker, string _input)
+        {
+            ConsoleHelper ch = new ConsoleHelper();
+            Asset _asset = new Asset().getAsset(dTicker);
+
+            using var _connection = new SQLiteConnection(_database);
+            try
+            {
+                _connection.Open();
+
+                using var cmd = new SQLiteCommand(_connection);
+                Console.WriteLine(String.Format("Updating {0}...", _asset.Ticker));
+                cmd.CommandText = "UPDATE assets SET wallet = @input WHERE (ticker = @dTicker)";
+                cmd.Parameters.AddWithValue("@dTicker", _asset.Ticker.ToString());
+                cmd.Parameters.AddWithValue("@input", _input);
+
+                cmd.Prepare();
+                cmd.ExecuteNonQuery();
+                Thread.Sleep(1000);
+            }
+            catch (Exception ex)
+            {
+                ch.LogErr(ex.Message, 0);
+            }
+            finally
+            {
+                _connection.Close();
+            }
+        }
+        public void updateStaked(string dTicker, string _input)
+        {
+            ConsoleHelper ch = new ConsoleHelper();
+            Asset _asset = new Asset().getAsset(dTicker);
+
+            using var _connection = new SQLiteConnection(_database);
+            try
+            {
+                _connection.Open();
+
+                using var cmd = new SQLiteCommand(_connection);
+                Console.WriteLine(String.Format("Updating {0}...", _asset.Ticker));
+                cmd.CommandText = "UPDATE assets SET staked = @input WHERE (ticker = @dTicker)";
+                cmd.Parameters.AddWithValue("@dTicker", _asset.Ticker.ToString());
+                cmd.Parameters.AddWithValue("@input", _input);
+
+                cmd.Prepare();
+                cmd.ExecuteNonQuery();
+                Thread.Sleep(1000);
+            }
+            catch (Exception ex)
+            {
+                ch.LogErr(ex.Message, 0);
+            }
+            finally
+            {
+                _connection.Close();
+            }
+        }
+        public void updateMarketVal(string dTicker, double _input)
+        {
+            ConsoleHelper ch = new ConsoleHelper();
+            Asset _asset = new Asset().getAsset(dTicker);
+
+            using var _connection = new SQLiteConnection(_database);
+            try
+            {
+                _connection.Open();
+
+                using var cmd = new SQLiteCommand(_connection);
+                Console.WriteLine(String.Format("Updating {0}...", _asset.Ticker));
+                cmd.CommandText = "UPDATE assets SET cv = @input WHERE (ticker = @dTicker)";
+                cmd.Parameters.AddWithValue("@dTicker", _asset.Ticker.ToString());
+                cmd.Parameters.AddWithValue("@input", _input);
+
+                cmd.Prepare();
+                cmd.ExecuteNonQuery();
+                Thread.Sleep(1000);
+            }
+            catch (Exception ex)
+            {
+                ch.LogErr(ex.Message, 0);
+            }
+            finally
+            {
+                _connection.Close();
+            }
+        }
+        #endregion
+        #endregion
+
+        #region Add / Remove Asset
         public void addAsset(string dTicker, decimal dAmount, decimal dInvested, string dWallet, string disStaked, decimal dCv)
         {
             ConsoleHelper ch = new ConsoleHelper();
@@ -170,7 +350,9 @@ namespace CryptoLedger
                 _connection.Close();
             }
         }
+        #endregion
 
+        #region Retrieve Asset(s)
         public Asset getAsset(string dTicker)
         {
             ConsoleHelper ch = new ConsoleHelper();
@@ -247,5 +429,6 @@ namespace CryptoLedger
 
             return _constructedList;
         }
+        #endregion
     }
 }

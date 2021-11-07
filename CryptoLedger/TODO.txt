@@ -1,3 +1,3 @@
 ﻿1). 
-2). Add CoinMarketCap API utilization
+2). Add Update feature
 3). Add ability to edit values

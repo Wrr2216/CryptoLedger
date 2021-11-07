@@ -14,6 +14,7 @@ namespace CryptoLedger
         public string isStaked { get; set; }
         public decimal marketVal { get; set; }
 
+        #region Add/Remove Asset
         public void addAsset(string dTicker, decimal dAmount, decimal dInvested, string dWallet, string dIsStaked)
         {
             if (dTicker.ToLower() == "test")
@@ -21,6 +22,14 @@ namespace CryptoLedger
             decimal _marketVal = Convert.ToDecimal(this.getMarketValue(dTicker).Price);
             _assetDB.addAsset(dTicker, dAmount, dInvested, dWallet, dIsStaked, _marketVal);
         }
+
+        public void removeAsset(string dTicker)
+        {
+            _assetDB.remAsset(dTicker);
+        }
+        #endregion
+
+        #region Retrieve Assets
         public Asset getAsset(string dTicker)
         {
             return _assetDB.getAsset(dTicker);
@@ -30,12 +39,36 @@ namespace CryptoLedger
         {
             return _assetDB.getAssets();
         }
+        #endregion
 
-        public void removeAsset(string dTicker)
+        #region Modify Values
+        public void updateTicker(string dTicker, string _input) 
         {
-            _assetDB.remAsset(dTicker);
+            _assetDB.updateTicker(dTicker, _input);
         }
+        public void updateAmount(string dTicker, double _input)
+        {
+            _assetDB.updateAmount(dTicker, _input);
+        }
+        public void updateInvested(string dTicker, double _input)
+        {
+            _assetDB.updateInvested(dTicker, _input);
+        }
+        public void updateWallet(string dTicker, string _input)
+        {
+            _assetDB.updateWallet(dTicker, _input);
+        }
+        public void updateStaked(string dTicker, string _input)
+        {
+            _assetDB.updateStaked(dTicker, _input);
+        }
+        public void updateMarketVal(string dTicker, double _input)
+        {
+            _assetDB.updateMarketVal(dTicker, _input);
+        }
+        #endregion
 
+        #region CoinMarketCap API Interactions
         public Currency getMarketValue()
         {
             ICoinmarketcapClient client = new CoinmarketcapClient("76b79698-000e-4ec2-849a-0a60e8ba3889");
@@ -49,5 +82,6 @@ namespace CryptoLedger
             Currency currency = client.GetCurrencyBySymbol(dTicker);
             return currency;
         }
+        #endregion
     }
 }

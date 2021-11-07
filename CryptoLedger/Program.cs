@@ -8,6 +8,7 @@ namespace CryptoLedger
 {
     class Program
     {
+        public static bool hasInit = false;
 
         static void Main(string[] args)
         {
@@ -24,14 +25,25 @@ namespace CryptoLedger
             ConsoleHelper ch = new ConsoleHelper();
             DBHelper db = new DBHelper();
 
-            AnsiConsole.Status()
+            if (!hasInit) {string _inp = AnsiConsole.Ask<string>("Perform Database Update? (y/n) ");
+
+
+                AnsiConsole.Status()
                 .Start("Initializing Database...", ctx =>
                 {
-                    db.initializeDatabase();
-                    Thread.Sleep(1500);
 
-                    ctx.Status("Updating Database values...");
-                });
+                    db.initializeDatabase();
+
+
+                    if (_inp.ToLower() == "y")
+                    {
+                        db.updateDBMarket();
+                        ctx.Status("Updating Database values...");
+                    }
+
+
+                }); 
+            }
 
             Console.Clear();
 
@@ -45,6 +57,7 @@ namespace CryptoLedger
                             "Lookup Ticker",
                             "Add Ticker",
                             "Remove Ticker",
+                            "Update Ticker",
                             "[red]Exit Application[/]"
                         })
                 );
@@ -59,6 +72,8 @@ namespace CryptoLedger
                     return p.addAsset();
                 case "Remove Ticker":
                     return p.remAsset();
+                case "Update Ticker":
+                    return p.updateAsset();
                 case "[red]Exit Application[/]":
                     return false;
                 default:
@@ -125,6 +140,76 @@ namespace CryptoLedger
                 return true;
             }
         }
+
+        private bool updateAsset()
+        {
+            ConsoleHelper ch = new ConsoleHelper();
+            Console.Clear();
+
+            List<Asset> _tempAssetList = new Asset().getAllAssets();
+            var _initTable = new Table();
+            _initTable.AddColumns("Asset");
+
+            foreach (Asset _asset in _tempAssetList)
+            {
+                _initTable.AddRow(
+                    String.Format("[blue]{0}[/]", _asset.Ticker)
+                );
+            }
+
+            AnsiConsole.Write(_initTable);
+
+            string _ticker = AnsiConsole.Ask<string>("Enter the ticker to modify: ");
+            Asset _tempAsset = new Asset().getAsset(_ticker.ToUpper());
+            var _table = new Table();
+            _table.AddColumns("Asset", "Amount", "Invested", "Wallet", "Staked", "Value");
+            _table.AddRow(
+                            String.Format("[red](1)[/] [blue]{0}[/]", _tempAsset.Ticker),
+                            String.Format("[red](2)[/] {0}", _tempAsset.Amount),
+                            String.Format("[red](3)[/] [green]{0}[/]", _tempAsset.Invested),
+                            String.Format("[red](4)[/] {0}", _tempAsset.Wallet),
+                            String.Format("[red](5)[/] {0}", _tempAsset.isStaked),
+                            String.Format("[red](6)[/] [green]{0}[/]", (_tempAsset.marketVal * _tempAsset.Amount))
+                        );
+            _table.AddRow("(7) EXIT", "", "", "", "", "");
+
+            AnsiConsole.Write(_table);
+
+            int _sel = AnsiConsole.Ask<int>("Select option to modify [red](1-6)[/]: ");
+
+            switch (_sel)
+            {
+                case 1:
+                    string _amt1 = AnsiConsole.Ask<string>("Enter new value: ");
+                    _tempAsset.updateTicker(_tempAsset.Ticker, _amt1);
+                    return tinyMenu();
+                case 2:
+                    double _amt2 = AnsiConsole.Ask<double>("Enter new value: ");
+                    _tempAsset.updateAmount(_tempAsset.Ticker, _amt2);
+                    return tinyMenu();
+                case 3:
+                    double _amt3 = AnsiConsole.Ask<double>("Enter new value: ");
+                    _tempAsset.updateInvested(_tempAsset.Ticker, _amt3);
+                    return tinyMenu();
+                case 4:
+                    string _amt4 = AnsiConsole.Ask<string>("Enter new value: ");
+                    _tempAsset.updateWallet(_tempAsset.Ticker, _amt4);
+                    return tinyMenu();
+                case 5:
+                    string _amt5 = AnsiConsole.Ask<string>("Enter new value: ");
+                    _tempAsset.updateStaked(_tempAsset.Ticker, _amt5);
+                    return tinyMenu();
+                case 6:
+                    double _amt6 = AnsiConsole.Ask<double>("Enter new value: ");
+                    _tempAsset.updateMarketVal(_tempAsset.Ticker, _amt6);
+                    return tinyMenu();
+                case 7:
+                    return false;
+                default:
+                    return false;
+            }
+        }
+
         private bool listAsset()
         {
             ConsoleHelper ch = new ConsoleHelper();
