@@ -236,6 +236,9 @@ namespace CryptoLedger
             ConsoleHelper ch = new ConsoleHelper();
             Console.Clear();
 
+            double _totalInvest = 0;
+            double _totalValue = 0;
+
             List<Asset> _retData;
 
             var _table = new Table();
@@ -259,13 +262,19 @@ namespace CryptoLedger
                             String.Format("{0}", _asset.isStaked),
                             String.Format("[green]{0}[/]", (_asset.marketVal * _asset.Amount))
                         );
+                        _totalInvest = _totalInvest + Convert.ToDouble(_asset.Invested);
+                        _totalValue = _totalValue + Convert.ToDouble((_asset.marketVal * _asset.Amount));
                     }
+                    _table.AddRow("TOTALS", "", String.Format("[green]${0}[/]", _totalInvest), "", "", String.Format("[green]${0}[/]", _totalValue));
                 });
 
             AnsiConsole.Write(_table);
 
             return tinyMenu();
         }
+
+
+
         private bool tinyMenu()
         {
             Program p = new Program();
