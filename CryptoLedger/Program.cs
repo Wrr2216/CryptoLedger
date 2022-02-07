@@ -309,6 +309,8 @@ namespace CryptoLedger
               _totalValue = _totalValue + Convert.ToDouble((_asset.marketVal * _asset.Amount));
           }
 
+          // Get all time stats
+          writeToAllTimeCsv();
           //Save to CSV here
           writeToCsv(csv.ToString(), false);
 
@@ -332,6 +334,31 @@ namespace CryptoLedger
 
             if (!File.Exists(tempPath) || _bypass == true)
                 File.WriteAllText(tempPath, _data);
+        }
+
+        private void writeToAllTimeCsv()
+        {
+            string dateNow = DateTime.Now.ToString("MM-dd-yyyy");
+            string tempPath = string.Format(@".\Data\overall.csv");
+
+            double _csvtotalInvest = 0;
+            double _csvtotalValue = 0;
+            List<Asset> _retData;
+            _retData = new Asset().getAllAssets();
+
+            foreach (Asset _asset in _retData)
+            {
+                _csvtotalInvest = _csvtotalInvest + Convert.ToDouble(_asset.Invested);
+                _csvtotalValue = _csvtotalValue + Convert.ToDouble((_asset.marketVal * _asset.Amount));
+            }
+
+            var _modifiedData = string.Format("{0},{1},{2}", dateNow, _csvtotalInvest.ToString(), _csvtotalValue.ToString());
+
+            if (!File.Exists(tempPath))
+                File.Create(tempPath);
+
+            if(!File.ReadAllText(tempPath).Contains(dateNow))
+                File.AppendAllText(tempPath, _modifiedData);
         }
 
         private bool exportData()
