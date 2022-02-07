@@ -10,11 +10,16 @@ namespace CryptoLedger
     {
         private string _database = @"Data Source=.\Databases\assets.db; Version=3;";
 
+        public void saveData(string data)
+        {
+            File.WriteAllText("data_" + System.DateTime.Now.ToString(), data);
+        }
+
         public void initializeDatabase()
         {
             ConsoleHelper ch = new ConsoleHelper();
 
-            var _dir = @".\Database";
+            var _dir = @".\Databases";
 
             if (!Directory.Exists(_dir))
                 Directory.CreateDirectory(_dir);
@@ -27,7 +32,7 @@ namespace CryptoLedger
                     _connection.Open();
 
                     using var cmd = new SQLiteCommand(_connection);
-                    cmd.CommandText = "create table assets(ticker text, amount decimal, invested decimal, wallet text, staked text, cv decimal)";
+                    cmd.CommandText = "create table assets(id int, ticker text, amount decimal, invested decimal, wallet text, staked text, cv decimal)";
                     cmd.Prepare();
                     cmd.ExecuteNonQuery();
                 }
@@ -94,7 +99,7 @@ namespace CryptoLedger
                     using var cmd = new SQLiteCommand(_connection2);
                     foreach (Asset _entry in _listAsset)
                     {
-                        Console.WriteLine(String.Format("Updating {0}...", _entry.Ticker));
+                        Console.Write(String.Format("Updated: {0}", _entry.Ticker));
                         cmd.CommandText = "UPDATE assets SET cv = @dMarketValue WHERE (ticker = @dTicker)";
                         cmd.Parameters.AddWithValue("@dMarketValue", Convert.ToDecimal(_entry.getMarketValue().Price));
                         cmd.Parameters.AddWithValue("@dTicker", _entry.Ticker.ToString());

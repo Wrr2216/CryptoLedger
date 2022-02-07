@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Spectre.Console;
 using System.Threading;
+using System.Text;
 
 namespace CryptoLedger
 {
@@ -29,7 +30,7 @@ namespace CryptoLedger
 
 
                 AnsiConsole.Status()
-                .Start("Initializing Database...", ctx =>
+                .Start("Initializing... ", ctx =>
                 {
 
                     db.initializeDatabase();
@@ -58,6 +59,7 @@ namespace CryptoLedger
                             "Add Ticker",
                             "Remove Ticker",
                             "Update Ticker",
+                            "Export Data",
                             "[red]Exit Application[/]"
                         })
                 );
@@ -74,11 +76,21 @@ namespace CryptoLedger
                     return p.remAsset();
                 case "Update Ticker":
                     return p.updateAsset();
+                case "Export Data":
+                    return p.exportData();
                 case "[red]Exit Application[/]":
                     return false;
                 default:
                     return true;
             }
+        }
+
+        private bool exists(string tick)
+        {
+            Asset _tempAsset = new Asset().getAsset(tick.ToUpper());
+            if (_tempAsset != null)
+                return true;
+            return false;
         }
 
         private bool addAsset()
@@ -87,6 +99,14 @@ namespace CryptoLedger
 
             ch.LogClear("Ticker?: ", "w");
             string ticker = Console.ReadLine();
+
+            // Check exists ticker
+            if (exists(ticker))
+            {
+                ch.LogClear("Already Exists", "w");
+                return true;
+            }
+
             ch.LogClear("Amount?: ", "w");
             decimal amount = Convert.ToDecimal(Console.ReadLine());
             ch.LogClear("Invested?: ", "w");
@@ -245,35 +265,114 @@ namespace CryptoLedger
             _table.AddColumns("Asset", "Amount", "Invested", "Wallet", "Staked", "Value");
 
             AnsiConsole.Status()
-                .Start("Loading Portfolio...", ctx =>
-                {
-                    _retData = new Asset().getAllAssets();
-                    Thread.Sleep(1000);
+      .Start("Loading Portfolio...", ctx =>
+      {
+          _retData = new Asset().getAllAssets();
+          Thread.Sleep(1000);
 
-                    foreach (Asset _asset in _retData)
-                    {
+          var csv = new StringBuilder();
+          string _valColor = "[white]";
+          foreach (Asset _asset in _retData)
+          {
+              var csvAmt = _asset.Amount;
+              var csvTicker = _asset.Ticker;
+              var csvInvested = _asset.Invested;
+              var csvWallet = _asset.Wallet;
+              var csvStaked = _asset.isStaked;
+              var csvMarketVal = (_asset.marketVal * _asset.Amount);
 
+              var csvEntry = string.Format("{0},{1},{2},{3},{4},{5}", csvTicker, csvAmt, csvInvested, csvWallet, csvStaked, csvMarketVal);
+              csv.AppendLine(csvEntry);
+              if ((_asset.marketVal * _asset.Amount) < _asset.Invested)
+              {
+                  _valColor = "[red]";
+              }
+              else if ((_asset.marketVal * _asset.Amount) >= _asset.Invested)
+              {
+                  _valColor = "[green]";
+              }
+              else
+              {
+                  _valColor = "[white]";
+
+              }
                         //asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked
                         _table.AddRow(
-                            String.Format("[blue]{0}[/]", _asset.Ticker),
-                            String.Format("{0}", _asset.Amount),
-                            String.Format("[green]{0}[/]", _asset.Invested),
-                            String.Format("{0}", _asset.Wallet),
-                            String.Format("{0}", _asset.isStaked),
-                            String.Format("[green]{0}[/]", (_asset.marketVal * _asset.Amount))
-                        );
-                        _totalInvest = _totalInvest + Convert.ToDouble(_asset.Invested);
-                        _totalValue = _totalValue + Convert.ToDouble((_asset.marketVal * _asset.Amount));
-                    }
-                    _table.AddRow("TOTALS", "", String.Format("[green]${0}[/]", _totalInvest), "", "", String.Format("[green]${0}[/]", _totalValue));
-                });
+                  String.Format("[blue]{0}[/]", _asset.Ticker),
+                  String.Format("{0}", _asset.Amount),
+                  String.Format("[green]{0}[/]", _asset.Invested),
+                  String.Format("{0}", _asset.Wallet),
+                  String.Format("{0}", _asset.isStaked),
+                  String.Format("{0}{1}[/]", _valColor, (_asset.marketVal * _asset.Amount))
+              );
+              _totalInvest = _totalInvest + Convert.ToDouble(_asset.Invested);
+              _totalValue = _totalValue + Convert.ToDouble((_asset.marketVal * _asset.Amount));
+          }
+
+          //Save to CSV here
+          writeToCsv(csv.ToString(), false);
+
+            if(_totalValue > _totalInvest)
+              _ = _table.AddRow("TOTALS", "", String.Format("[green]${0}[/]", _totalInvest), "", "", String.Format("[green]${0}[/]", _totalValue));
+            else
+              _ = _table.AddRow("TOTALS", "", String.Format("[red]${0}[/]", _totalInvest), "", "", String.Format("[red]${0}[/]", _totalValue));
+
+      });
+
 
             AnsiConsole.Write(_table);
 
             return tinyMenu();
         }
 
+        private void writeToCsv(string _data, bool _bypass)
+        { 
+            string dateNow = DateTime.Now.ToString("MM-dd-yyyy--HH");
+            string tempPath = string.Format(@".\Data\data_{0}.csv", dateNow);
 
+            if (!File.Exists(tempPath) || _bypass == true)
+                File.WriteAllText(tempPath, _data);
+        }
+
+        private bool exportData()
+        {
+            double _csvtotalInvest = 0;
+            double _csvtotalValue = 0;
+            List<Asset> _retData;
+            _retData = new Asset().getAllAssets();
+
+            var csv = new StringBuilder();
+            var csvHeader = "Ticker,Amount,Invested,Wallet,Staked,Market Value";
+
+            csv.AppendLine(csvHeader);
+
+            foreach (Asset _asset in _retData)
+            {
+                var csvAmt = _asset.Amount;
+                var csvTicker = _asset.Ticker;
+                var csvInvested = _asset.Invested;
+                var csvWallet = _asset.Wallet;
+                var csvStaked = _asset.isStaked;
+                var csvMarketVal = (_asset.marketVal * _asset.Amount);
+                _csvtotalInvest = _csvtotalInvest + Convert.ToDouble(_asset.Invested);
+                _csvtotalValue = _csvtotalValue + Convert.ToDouble((_asset.marketVal * _asset.Amount));
+
+                var csvTotalInv = string.Format("Total Invested: {0}", _csvtotalInvest);
+                var csvTotalVal = string.Format("Total Value: {0}", _csvtotalValue);
+                var csvEntry = string.Format("{0},{1},{2},{3},{4},{5}", csvTicker, csvAmt, csvInvested, csvWallet, csvStaked, csvMarketVal);
+
+                
+                csv.AppendLine(csvEntry);
+            }
+
+            csv.AppendLine("Total Invested: " + _csvtotalInvest.ToString());
+            csv.AppendLine("Total Value: " + _csvtotalValue.ToString());
+
+            //Save to CSV here
+            writeToCsv(csv.ToString(), true);
+
+            return true;
+        }
 
         private bool tinyMenu()
         {
