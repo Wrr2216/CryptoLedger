@@ -101,11 +101,11 @@ namespace CryptoLedger
             string ticker = Console.ReadLine();
 
             // Check exists ticker
-            if (exists(ticker))
-            {
-                ch.LogClear("Already Exists", "w");
-                return true;
-            }
+           // if (exists(ticker))
+           // {
+            //    ch.LogClear("Already Exists", "w");
+           //     return true;
+           // }
 
             ch.LogClear("Amount?: ", "w");
             decimal amount = Convert.ToDecimal(Console.ReadLine());
@@ -258,11 +258,13 @@ namespace CryptoLedger
 
             double _totalInvest = 0;
             double _totalValue = 0;
+            double _totalProfit = 0;
+            double _totalLoss = 0;
 
             List<Asset> _retData;
 
             var _table = new Table();
-            _table.AddColumns("Asset", "Amount", "Invested", "Wallet", "Staked", "Value");
+            _table.AddColumns("Asset", "Amount", "Invested", "Wallet", "Staked", "Value", "P/L");
 
             AnsiConsole.Status()
       .Start("Loading Portfolio...", ctx =>
@@ -296,17 +298,30 @@ namespace CryptoLedger
                   _valColor = "[white]";
 
               }
+
+              string plCol = "";
+              var plAmt = (_asset.marketVal * _asset.Amount) - _asset.Invested;
+
+              if (plAmt > 0)
+              { plCol = "[green]"; }
+              else {
+                  plCol = "[red]";
+              }
+
+
                         //asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked
-                        _table.AddRow(
+              _table.AddRow(
                   String.Format("[blue]{0}[/]", _asset.Ticker),
                   String.Format("{0}", _asset.Amount),
                   String.Format("[green]{0}[/]", _asset.Invested),
                   String.Format("{0}", _asset.Wallet),
                   String.Format("{0}", _asset.isStaked),
-                  String.Format("{0}{1}[/]", _valColor, (_asset.marketVal * _asset.Amount))
+                  String.Format("{0}{1}[/]", _valColor, (_asset.marketVal * _asset.Amount)),
+                  String.Format("{0}${1}[/]", plCol, plAmt.ToString())
               );
               _totalInvest = _totalInvest + Convert.ToDouble(_asset.Invested);
               _totalValue = _totalValue + Convert.ToDouble((_asset.marketVal * _asset.Amount));
+              _totalProfit = _totalValue - _totalInvest;
           }
 
           // Get all time stats
@@ -315,9 +330,9 @@ namespace CryptoLedger
           writeToCsv(csv.ToString(), false);
 
             if(_totalValue > _totalInvest)
-              _ = _table.AddRow("TOTALS", "", String.Format("[green]${0}[/]", _totalInvest), "", "", String.Format("[green]${0}[/]", _totalValue));
+              _ = _table.AddRow("TOTALS", "", String.Format("[green]${0}[/]", _totalInvest), "", "", String.Format("[green]${0}[/]", _totalValue), String.Format("PROFIT: ${0}", _totalProfit));
             else
-              _ = _table.AddRow("TOTALS", "", String.Format("[red]${0}[/]", _totalInvest), "", "", String.Format("[red]${0}[/]", _totalValue));
+              _ = _table.AddRow("TOTALS", "", String.Format("[red]${0}[/]", _totalInvest), "", "", String.Format("[red]${0}[/]", _totalValue), String.Format("PROFIT: ${0}", _totalProfit));
 
       });
 
