@@ -311,13 +311,13 @@ namespace CryptoLedger
 
                         //asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked
               _table.AddRow(
-                  String.Format("[blue]{0}[/]", _asset.Ticker),
-                  String.Format("{0}", _asset.Amount),
-                  String.Format("[green]{0}[/]", _asset.Invested),
+                  String.Format("[blue]{0}[/] ({1})", _asset.Ticker, _asset.marketVal.ToString("C3")),
+                  String.Format("{0}", _asset.Amount.ToString("C3")),
+                  String.Format("[green]{0}[/]", _asset.Invested.ToString("C3")),
                   String.Format("{0}", _asset.Wallet),
                   String.Format("{0}", _asset.isStaked),
-                  String.Format("{0}{1}[/]", _valColor, (_asset.marketVal * _asset.Amount)),
-                  String.Format("{0}${1}[/]", plCol, plAmt.ToString())
+                  String.Format("{0}{1}[/]", _valColor, (_asset.marketVal * _asset.Amount).ToString("C3")),
+                  String.Format("{0}${1}[/]", plCol, plAmt.ToString("C3"))
               );
               _totalInvest = _totalInvest + Convert.ToDouble(_asset.Invested);
               _totalValue = _totalValue + Convert.ToDouble((_asset.marketVal * _asset.Amount));
@@ -330,9 +330,9 @@ namespace CryptoLedger
           writeToCsv(csv.ToString(), false);
 
             if(_totalValue > _totalInvest)
-              _ = _table.AddRow("TOTALS", "", String.Format("[green]${0}[/]", _totalInvest), "", "", String.Format("[green]${0}[/]", _totalValue), String.Format("PROFIT: ${0}", _totalProfit));
+              _ = _table.AddRow("TOTALS", "", String.Format("[green]{0}[/]", _totalInvest.ToString("C3")), "", "", String.Format("[green]{0}[/]", _totalValue.ToString("C3")), String.Format("PROFIT: {0}", _totalProfit.ToString("C3")));
             else
-              _ = _table.AddRow("TOTALS", "", String.Format("[red]${0}[/]", _totalInvest), "", "", String.Format("[red]${0}[/]", _totalValue), String.Format("PROFIT: ${0}", _totalProfit));
+              _ = _table.AddRow("TOTALS", "", String.Format("[red]{0}[/]", _totalInvest.ToString("C3")), "", "", String.Format("[red]{0}[/]", _totalValue.ToString("C3")), String.Format("PROFIT: {0}", _totalProfit.ToString("C3")));
 
       });
 
@@ -367,7 +367,7 @@ namespace CryptoLedger
                 _csvtotalValue = _csvtotalValue + Convert.ToDouble((_asset.marketVal * _asset.Amount));
             }
 
-            var _modifiedData = string.Format("{0},{1},{2}", dateNow, _csvtotalInvest.ToString(), _csvtotalValue.ToString());
+            var _modifiedData = string.Format("{0},{1},{2},{3}", dateNow, _csvtotalInvest.ToString(), _csvtotalValue.ToString(), (_csvtotalValue - _csvtotalInvest));
 
             if (!File.Exists(tempPath))
                 File.Create(tempPath);
