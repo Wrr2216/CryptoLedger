@@ -1,8 +1,7 @@
-﻿using System;
+﻿using Spectre.Console;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Spectre.Console;
-using System.Threading;
 using System.Text;
 
 namespace CryptoLedger
@@ -26,7 +25,9 @@ namespace CryptoLedger
             ConsoleHelper ch = new ConsoleHelper();
             DBHelper db = new DBHelper();
 
-            if (!hasInit) {string _inp = AnsiConsole.Ask<string>("Perform Database Update? (y/n) ");
+            if (!hasInit)
+            {
+                string _inp = AnsiConsole.Ask<string>("Perform Database Update? (y/n) ");
 
 
                 AnsiConsole.Status()
@@ -43,7 +44,7 @@ namespace CryptoLedger
                     }
 
 
-                }); 
+                });
             }
 
             Console.Clear();
@@ -101,11 +102,11 @@ namespace CryptoLedger
             string ticker = Console.ReadLine();
 
             // Check exists ticker
-           // if (exists(ticker))
-           // {
+            // if (exists(ticker))
+            // {
             //    ch.LogClear("Already Exists", "w");
-           //     return true;
-           // }
+            //     return true;
+            // }
 
             ch.LogClear("Amount?: ", "w");
             decimal amount = Convert.ToDecimal(Console.ReadLine());
@@ -262,6 +263,7 @@ namespace CryptoLedger
             double _totalLoss = 0;
 
             List<Asset> _retData;
+            List<(string Label, double Value)> items = new List<(string Label, double Value)>();
 
             var _table = new Table();
             _table.AddColumns("Asset", "Amount", "Invested", "Wallet", "Staked", "Value", "P/L");
@@ -270,7 +272,8 @@ namespace CryptoLedger
       .Start("Loading Portfolio...", ctx =>
       {
           _retData = new Asset().getAllAssets();
-          Thread.Sleep(1000);
+
+
 
           var csv = new StringBuilder();
           string _valColor = "[white]";
@@ -304,12 +307,13 @@ namespace CryptoLedger
 
               if (plAmt > 0)
               { plCol = "[green]"; }
-              else {
+              else
+              {
                   plCol = "[red]";
               }
 
 
-                        //asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked
+              //asset.Ticker, _asset.Amount, _asset.Invested, _asset.Wallet, _asset.isStaked
               _table.AddRow(
                   String.Format("[blue]{0}[/] ({1})", _asset.Ticker, _asset.marketVal.ToString("C3")),
                   String.Format("{0}", _asset.Amount.ToString("C3")),
@@ -322,6 +326,7 @@ namespace CryptoLedger
               _totalInvest = _totalInvest + Convert.ToDouble(_asset.Invested);
               _totalValue = _totalValue + Convert.ToDouble((_asset.marketVal * _asset.Amount));
               _totalProfit = _totalValue - _totalInvest;
+
           }
 
           // Get all time stats
@@ -329,13 +334,17 @@ namespace CryptoLedger
           //Save to CSV here
           writeToCsv(csv.ToString(), false);
 
-            if(_totalValue > _totalInvest)
+          if (_totalValue > _totalInvest)
               _ = _table.AddRow("TOTALS", "", String.Format("[green]{0}[/]", _totalInvest.ToString("C3")), "", "", String.Format("[green]{0}[/]", _totalValue.ToString("C3")), String.Format("PROFIT: {0}", _totalProfit.ToString("C3")));
-            else
+          else
               _ = _table.AddRow("TOTALS", "", String.Format("[red]{0}[/]", _totalInvest.ToString("C3")), "", "", String.Format("[red]{0}[/]", _totalValue.ToString("C3")), String.Format("PROFIT: {0}", _totalProfit.ToString("C3")));
 
       });
 
+
+            _table.Border = TableBorder.Heavy;
+            _table.Centered();
+            _table.BorderColor(Color.Red);
 
             AnsiConsole.Write(_table);
 
@@ -343,7 +352,7 @@ namespace CryptoLedger
         }
 
         private void writeToCsv(string _data, bool _bypass)
-        { 
+        {
             string dateNow = DateTime.Now.ToString("MM-dd-yyyy--HH");
             string tempPath = string.Format(@".\Data\data_{0}.csv", dateNow);
 
@@ -372,7 +381,7 @@ namespace CryptoLedger
             if (!File.Exists(tempPath))
                 File.Create(tempPath);
 
-            if(!File.ReadAllText(tempPath).Contains(dateNow))
+            if (!File.ReadAllText(tempPath).Contains(dateNow))
                 File.AppendAllText(tempPath, _modifiedData);
         }
 
@@ -403,7 +412,7 @@ namespace CryptoLedger
                 var csvTotalVal = string.Format("Total Value: {0}", _csvtotalValue);
                 var csvEntry = string.Format("{0},{1},{2},{3},{4},{5}", csvTicker, csvAmt, csvInvested, csvWallet, csvStaked, csvMarketVal);
 
-                
+
                 csv.AppendLine(csvEntry);
             }
 

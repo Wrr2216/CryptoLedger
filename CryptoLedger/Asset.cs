@@ -42,7 +42,7 @@ namespace CryptoLedger
         #endregion
 
         #region Modify Values
-        public void updateTicker(string dTicker, string _input) 
+        public void updateTicker(string dTicker, string _input)
         {
             _assetDB.updateTicker(dTicker, _input);
         }

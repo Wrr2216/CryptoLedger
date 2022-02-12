@@ -66,7 +66,7 @@ namespace CryptoLedger
                 SQLiteDataReader _reader = cmd.ExecuteReader();
                 while (_reader.Read())
                 {
-                    if(_reader.GetValue(0) != DBNull.Value)
+                    if (_reader.GetValue(0) != DBNull.Value)
                     {
                         Asset _tempAsset = new Asset()
                         {
@@ -93,30 +93,31 @@ namespace CryptoLedger
             using var _connection2 = new SQLiteConnection(_database);
 
             try
-                {
-                    _connection2.Open();
+            {
+                _connection2.Open();
 
-                    using var cmd = new SQLiteCommand(_connection2);
-                    foreach (Asset _entry in _listAsset)
-                    {
-                        Console.Write(String.Format("Updated: {0}", _entry.Ticker));
-                        cmd.CommandText = "UPDATE assets SET cv = @dMarketValue WHERE (ticker = @dTicker)";
-                        cmd.Parameters.AddWithValue("@dMarketValue", Convert.ToDecimal(_entry.getMarketValue().Price));
-                        cmd.Parameters.AddWithValue("@dTicker", _entry.Ticker.ToString());
-
-                        cmd.Prepare();
-                        cmd.ExecuteNonQuery();
-                        Thread.Sleep(1000);
-                    }
-                    ch.LogErr("6", 0);
-                }
-                catch (Exception ex)
+                using var cmd = new SQLiteCommand(_connection2);
+                foreach (Asset _entry in _listAsset)
                 {
-                    ch.LogErr("Try 2 " + ex.Message, 0);
+                    Console.Write(String.Format("Updated: {0}", _entry.Ticker));
+                    cmd.CommandText = "UPDATE assets SET cv = @dMarketValue WHERE (ticker = @dTicker)";
+                    cmd.Parameters.AddWithValue("@dMarketValue", Convert.ToDecimal(_entry.getMarketValue().Price));
+                    cmd.Parameters.AddWithValue("@dTicker", _entry.Ticker.ToString());
+
+                    cmd.Prepare();
+                    cmd.ExecuteNonQuery();
+                    Thread.Sleep(1000);
                 }
-                finally {
-                    _connection2.Close();
-                }
+                ch.LogErr("6", 0);
+            }
+            catch (Exception ex)
+            {
+                ch.LogErr("Try 2 " + ex.Message, 0);
+            }
+            finally
+            {
+                _connection2.Close();
+            }
         }
 
 
@@ -390,7 +391,7 @@ namespace CryptoLedger
             {
                 ch.LogErr(ex.Message, 0);
             }
-            finally 
+            finally
             {
                 _connection.Close();
             }
@@ -428,7 +429,8 @@ namespace CryptoLedger
             {
                 ch.LogErr(ex.Message, 0);
             }
-            finally {
+            finally
+            {
                 _connection.Close();
             }
 
