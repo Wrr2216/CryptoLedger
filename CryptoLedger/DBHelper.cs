@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
@@ -8,30 +8,35 @@ namespace CryptoLedger
 {
     class DBHelper
     {
-        private string _database = @"Data Source=.\Databases\assets.db; Version=3;";
+        private readonly string dbconfig = @".\database.config";
+        private readonly string database = @"Data Source=.\Databases\assets.db; Version=3;";
 
-        public void saveData(string data)
+        public void SaveData(string data) => File.WriteAllText("data_" + DateTime.Now, data);
+
+        public void InitializeDatabase()
         {
-            File.WriteAllText("data_" + System.DateTime.Now.ToString(), data);
-        }
+            var ch = new ConsoleHelper();
 
-        public void initializeDatabase()
-        {
-            ConsoleHelper ch = new ConsoleHelper();
+            var dir = @".\Databases";
 
-            var _dir = @".\Databases";
-
-            if (!Directory.Exists(_dir))
-                Directory.CreateDirectory(_dir);
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
 
             if (!File.Exists(@".\Databases\assets.db"))
             {
-                using var _connection = new SQLiteConnection(_database);
+                using var connection = new SQLiteConnection(this.database);
+                if (connection == null)
+                {
+                    throw new ArgumentNullException(nameof(connection));
+                }
+
                 try
                 {
-                    _connection.Open();
+                    connection.Open();
 
-                    using var cmd = new SQLiteCommand(_connection);
+                    using var cmd = new SQLiteCommand(connection);
                     cmd.CommandText = "create table assets(id int, ticker text, amount decimal, invested decimal, wallet text, staked text, cv decimal)";
                     cmd.Prepare();
                     cmd.ExecuteNonQuery();
@@ -42,43 +47,49 @@ namespace CryptoLedger
                 }
                 finally
                 {
-                    _connection.Close();
+                    connection.Close();
                 }
             }
 
-            Program.hasInit = true;
+            Program.HasInit = true;
 
         }
         #region Update Values
-        public void updateDBMarket()
+        public void UpdateDbMarket()
         {
-            ConsoleHelper ch = new ConsoleHelper();
-            List<Asset> _listAsset = new List<Asset>();
+            var ch = new ConsoleHelper();
+            var listAsset = new List<Asset>();
+            if (listAsset == null)
+            {
+                throw new ArgumentNullException(nameof(listAsset));
+            }
 
-            using var _connection = new SQLiteConnection(_database);
+            using var connection = new SQLiteConnection(this.database);
             try
             {
-                _connection.Open();
+                connection.Open();
 
-                using var cmd = new SQLiteCommand(_connection);
+                using var cmd = new SQLiteCommand(connection);
                 cmd.CommandText = "SELECT * FROM assets";
                 cmd.Prepare();
-                SQLiteDataReader _reader = cmd.ExecuteReader();
-                while (_reader.Read())
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
                 {
-                    if (_reader.GetValue(0) != DBNull.Value)
+                    if (reader.GetValue(0) == DBNull.Value)
                     {
-                        Asset _tempAsset = new Asset()
-                        {
-                            Ticker = Convert.ToString(_reader.GetValue(0)),
-                            Amount = Convert.ToDecimal(_reader.GetValue(1)),
-                            Invested = Convert.ToDecimal(_reader.GetValue(2)),
-                            Wallet = Convert.ToString(_reader.GetValue(3)),
-                            isStaked = Convert.ToString(_reader.GetValue(4)),
-                            marketVal = Convert.ToDecimal(_reader.GetValue(5))
-                        };
-                        _listAsset.Add(_tempAsset);
+                        continue;
                     }
+
+                    var tempAsset = new Asset()
+                    {
+                        Ticker = Convert.ToString(reader.GetValue(0)),
+                        Amount = Convert.ToDecimal(reader.GetValue(1)),
+                        Invested = Convert.ToDecimal(reader.GetValue(2)),
+                        Wallet = Convert.ToString(reader.GetValue(3)),
+                        isStaked = Convert.ToString(reader.GetValue(4)),
+                        marketVal = Convert.ToDecimal(reader.GetValue(5))
+                    };
+                    listAsset.Add(tempAsset);
                 }
             }
             catch (Exception ex)
@@ -87,26 +98,25 @@ namespace CryptoLedger
             }
             finally
             {
-                _connection.Close();
+                connection.Close();
             }
 
-            using var _connection2 = new SQLiteConnection(_database);
+            using var connection2 = new SQLiteConnection(this.database);
 
             try
             {
-                _connection2.Open();
+                connection2.Open();
 
-                using var cmd = new SQLiteCommand(_connection2);
-                foreach (Asset _entry in _listAsset)
+                using var cmd = new SQLiteCommand(connection2);
+                foreach (var entry in listAsset)
                 {
-                    Console.Write(String.Format("Updated: {0}", _entry.Ticker));
+                    Console.Write(string.Format("Updated: {0}", entry.Ticker));
                     cmd.CommandText = "UPDATE assets SET cv = @dMarketValue WHERE (ticker = @dTicker)";
-                    cmd.Parameters.AddWithValue("@dMarketValue", Convert.ToDecimal(_entry.getMarketValue().Price));
-                    cmd.Parameters.AddWithValue("@dTicker", _entry.Ticker.ToString());
+                    cmd.Parameters.AddWithValue("@dMarketValue", Convert.ToDecimal(entry.getMarketValue().Price));
+                    cmd.Parameters.AddWithValue("@dTicker", entry.Ticker.ToString());
 
                     cmd.Prepare();
                     cmd.ExecuteNonQuery();
-                    Thread.Sleep(1000);
                 }
                 ch.LogErr("6", 0);
             }
@@ -116,7 +126,7 @@ namespace CryptoLedger
             }
             finally
             {
-                _connection2.Close();
+                connection2.Close();
             }
         }
 
@@ -127,7 +137,7 @@ namespace CryptoLedger
             ConsoleHelper ch = new ConsoleHelper();
             Asset _asset = new Asset().getAsset(dTicker);
 
-            using var _connection = new SQLiteConnection(_database);
+            using var _connection = new SQLiteConnection(this.database);
             try
             {
                 _connection.Open();
@@ -140,7 +150,6 @@ namespace CryptoLedger
 
                 cmd.Prepare();
                 cmd.ExecuteNonQuery();
-                Thread.Sleep(1000);
             }
             catch (Exception ex)
             {
@@ -156,7 +165,7 @@ namespace CryptoLedger
             ConsoleHelper ch = new ConsoleHelper();
             Asset _asset = new Asset().getAsset(dTicker);
 
-            using var _connection = new SQLiteConnection(_database);
+            using var _connection = new SQLiteConnection(this.database);
             try
             {
                 _connection.Open();
@@ -169,7 +178,7 @@ namespace CryptoLedger
 
                 cmd.Prepare();
                 cmd.ExecuteNonQuery();
-                Thread.Sleep(1000);
+                
             }
             catch (Exception ex)
             {
@@ -185,7 +194,7 @@ namespace CryptoLedger
             ConsoleHelper ch = new ConsoleHelper();
             Asset _asset = new Asset().getAsset(dTicker);
 
-            using var _connection = new SQLiteConnection(_database);
+            using var _connection = new SQLiteConnection(this.database);
             try
             {
                 _connection.Open();
@@ -198,7 +207,7 @@ namespace CryptoLedger
 
                 cmd.Prepare();
                 cmd.ExecuteNonQuery();
-                Thread.Sleep(1000);
+  
             }
             catch (Exception ex)
             {
@@ -214,7 +223,7 @@ namespace CryptoLedger
             ConsoleHelper ch = new ConsoleHelper();
             Asset _asset = new Asset().getAsset(dTicker);
 
-            using var _connection = new SQLiteConnection(_database);
+            using var _connection = new SQLiteConnection(this.database);
             try
             {
                 _connection.Open();
@@ -227,7 +236,7 @@ namespace CryptoLedger
 
                 cmd.Prepare();
                 cmd.ExecuteNonQuery();
-                Thread.Sleep(1000);
+    
             }
             catch (Exception ex)
             {
@@ -243,7 +252,7 @@ namespace CryptoLedger
             ConsoleHelper ch = new ConsoleHelper();
             Asset _asset = new Asset().getAsset(dTicker);
 
-            using var _connection = new SQLiteConnection(_database);
+            using var _connection = new SQLiteConnection(this.database);
             try
             {
                 _connection.Open();
@@ -256,7 +265,7 @@ namespace CryptoLedger
 
                 cmd.Prepare();
                 cmd.ExecuteNonQuery();
-                Thread.Sleep(1000);
+   
             }
             catch (Exception ex)
             {
@@ -272,7 +281,7 @@ namespace CryptoLedger
             ConsoleHelper ch = new ConsoleHelper();
             Asset _asset = new Asset().getAsset(dTicker);
 
-            using var _connection = new SQLiteConnection(_database);
+            using var _connection = new SQLiteConnection(this.database);
             try
             {
                 _connection.Open();
@@ -285,7 +294,7 @@ namespace CryptoLedger
 
                 cmd.Prepare();
                 cmd.ExecuteNonQuery();
-                Thread.Sleep(1000);
+           
             }
             catch (Exception ex)
             {
@@ -304,7 +313,7 @@ namespace CryptoLedger
         {
             ConsoleHelper ch = new ConsoleHelper();
 
-            using var _connection = new SQLiteConnection(_database);
+            using var _connection = new SQLiteConnection(this.database);
             try
             {
                 _connection.Open();
@@ -337,7 +346,7 @@ namespace CryptoLedger
         {
             ConsoleHelper ch = new ConsoleHelper();
 
-            using var _connection = new SQLiteConnection(_database);
+            using var _connection = new SQLiteConnection(this.database);
             try
             {
                 _connection.Open();
@@ -363,7 +372,7 @@ namespace CryptoLedger
         {
             ConsoleHelper ch = new ConsoleHelper();
             Asset _tempAsset = new Asset();
-            using var _connection = new SQLiteConnection(_database);
+            using var _connection = new SQLiteConnection(this.database);
             try
             {
                 _connection.Open();
@@ -403,7 +412,7 @@ namespace CryptoLedger
         {
             ConsoleHelper ch = new ConsoleHelper();
             List<Asset> _constructedList = new List<Asset>();
-            using var _connection = new SQLiteConnection(_database);
+            using var _connection = new SQLiteConnection(this.database);
 
             try
             {

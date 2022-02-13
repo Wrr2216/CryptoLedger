@@ -1,6 +1,6 @@
-﻿using NoobsMuc.Coinmarketcap.Client;
 using System;
 using System.Collections.Generic;
+using NoobsMuc.Coinmarketcap.Client;
 
 namespace CryptoLedger
 {
