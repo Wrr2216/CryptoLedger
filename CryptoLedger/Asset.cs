@@ -71,14 +71,14 @@ namespace CryptoLedger
         #region CoinMarketCap API Interactions
         public Currency getMarketValue()
         {
-            ICoinmarketcapClient client = new CoinmarketcapClient("76b79698-000e-4ec2-849a-0a60e8ba3889");
+            ICoinmarketcapClient client = new CoinmarketcapClient("-");
             Currency currency = client.GetCurrencyBySymbol(this.Ticker);
             return currency;
         }
 
         public Currency getMarketValue(string dTicker)
         {
-            ICoinmarketcapClient client = new CoinmarketcapClient("76b79698-000e-4ec2-849a-0a60e8ba3889");
+            ICoinmarketcapClient client = new CoinmarketcapClient("-");
             Currency currency = client.GetCurrencyBySymbol(dTicker);
             return currency;
         }
